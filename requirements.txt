@@ -1,1 +1,2 @@
 requests==0.13.6
+Logbook==0.3
