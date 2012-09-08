@@ -31,4 +31,16 @@ To remove the current token:
 	$ ./yippiemove.py token delete
 	Token removed.
 
+## Using the Wizard
 
+The simplest way to create a new email transfer using this utility is to 
+use the wizard:
+
+	$ ./yippiemove.py wizard
+
+This will guide you through the process of choosing the source and destination 
+email accounts, providing login credentials for them, confirming they are 
+correct, starting YippieMove's indexing of the account, and choosing which 
+email folders to transfer to the destination account. Finally, you can then 
+issue a payment for the new transfer to have it start processing as soon 
+as possible.
