@@ -619,7 +619,6 @@ def token_admin(action, token_string=None):
         token = get_token()
         if token is not None:
             print "Token is: " + token
-            return token
         else:
             print "Token is not set. Use yippiemove.py token set <token_string>"
             return None
