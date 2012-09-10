@@ -13,6 +13,7 @@ import requests
 from getpass import getpass
 from urllib import urlencode
 from json import loads
+from base64 import b64encode
 
 import logbook
 
@@ -21,6 +22,9 @@ API_ACCESS_TOKEN = None  # --token=ceaba709b1
 VERSION = "0.1"
 DEFAULT_API_SERVER = "https://api.yippiemove.com"
 # DEFAULT_API_SERVER = "http://localhost:8000/api"  # override temporarily
+OAUTH_AUTHORIZE_URL = "http://www.yippiemove.com/oauth2/authorize"
+OAUTH_ACCESS_CODE_URL = "http://www.yippiemove.com/oauth2/code/"
+OAUTH_TOKEN_URL = "http://www.yippiemove.com/oauth2/token"
 
 
 ################################################################
@@ -106,21 +110,22 @@ class NotEnoughCreditsException(Exception):
 # HTTP requests, authentication, and response handling
 ################################################################
 
-class HTTPBearerAuth(requests.auth.AuthBase):
-    """Authentication for YippieMoveAPI HTTP requests."""
+class HTTPBasicAuth(requests.auth.AuthBase):
+    """"""
 
-    def __init__(self, token):
-        self.token = token
+    def __init__(self, type_="Bearer", data=""):
+        self.data = data
+        self.type = type_
 
     def __call__(self, r):
-        r.headers['Authorization'] = "Bearer %s" % self.token
+        r.headers['Authorization'] = "%s %s" % (self.type, self.data)
         return r
 
 
 def make_request(url, method="GET", data={}):
     func = getattr(requests, method.lower())
     logbook.debug("%s %s (%r)" % (method, url, data))
-    auth = HTTPBearerAuth(API_ACCESS_TOKEN)
+    auth = HTTPBasicAuth(data=API_ACCESS_TOKEN)
     response = func(url, auth=auth, data=data)
 
     if response.status_code == 200:
@@ -638,6 +643,42 @@ def token_admin(action, token_string=None):
         except:
             print "Token could not be removed."
 
+    elif action == "wizard":
+
+        print "To obtain a token, please enter your application's public"
+        print "and private keys."
+        print
+        
+        CLIENT_KEY = raw_input(" Public Key: ")
+        CLIENT_SECRET = raw_input("Private Key: ")
+
+        parameters = {
+            "client_id": CLIENT_KEY,
+            "redirect_uri": OAUTH_ACCESS_CODE_URL,
+            "response_type": "code"
+        }
+
+        print
+        print "Please visit the following URL in your browser:"
+        print
+        print "    %s?%s" % (OAUTH_AUTHORIZE_URL, urlencode(parameters))
+        print
+        print "When you've accepted and received your access code,"
+        print "please enter it below:"
+        ACCESS_CODE = raw_input("Access Code: ")
+
+        parameters = {
+            "client_id": CLIENT_KEY,
+            "grant_type": "authorization_code",
+            "code": ACCESS_CODE,
+            "redirect_uri": OAUTH_ACCESS_CODE_URL
+        }
+        basic_auth = b64encode("%s:%s" % (CLIENT_KEY, CLIENT_SECRET))
+        auth = HTTPBasicAuth(type_="Basic", data=basic_auth)
+        response = requests.get("%s?%s" % (OAUTH_TOKEN_URL, urlencode(parameters)), auth=auth)
+        json = response.json
+        token_admin("set", json['access_token'])
+        print "Future actions you now take will use this access token by default."
 
 ################################################################
 # Main method
@@ -659,7 +700,7 @@ def main(argv=None):
     subparsers = parser.add_subparsers(title="Subcommands")
 
     parser_token = subparsers.add_parser("token", help="Commands for managing which access token to use.")
-    parser_token.add_argument("action", help="Action to take", choices=["set", "get", "delete"])
+    parser_token.add_argument("action", help="Action to take", choices=["set", "get", "delete", "wizard"])
     parser_token.add_argument("token_string", help="The token string to set, if applicable.", nargs="?")
     parser_token.set_defaults(func=token_admin)
 
