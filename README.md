@@ -124,3 +124,37 @@ properties an error will show, telling you exactly which property you
 were missing.
 
     $ ./yippiemove.py list email_account move_job=77
+    [
+        {
+            "xoauth_requestor_id": "",
+            "imap_port": 993,
+            "xoauth_token_or_consumer_key": "",
+            "updated_at": "2012-09-07T20:03:14.181",
+            "imap_provider": null,
+            "imap_host": "imap.gmail.com",
+            "link": "/api/users/3/move_jobs/77/accounts/67/",
+            "move_job": {
+                "link": "/api/users/3/move_jobs/77/"
+            },
+            "login": "yippiemove",
+            "is_destination": false,
+            "id": 67,
+            "imap_ssl": true
+        },
+        {
+            "xoauth_requestor_id": "",
+            "imap_port": 143,
+            "xoauth_token_or_consumer_key": "",
+            "updated_at": "2012-09-10T08:54:42.838",
+            "imap_provider": null,
+            "imap_host": "imap.mail.yahoo.com",
+            "link": "/api/users/3/move_jobs/77/accounts/68/",
+            "move_job": {
+                "link": "/api/users/3/move_jobs/77/"
+            },
+            "login": "yippiemove",
+            "is_destination": true,
+            "id": 68,
+            "imap_ssl": false
+        }
+    ]
