@@ -20,7 +20,7 @@ API_ACCESS_TOKEN = None  # --token=ceaba709b1
 
 VERSION = "0.1"
 DEFAULT_API_SERVER = "https://api.yippiemove.com"
-DEFAULT_API_SERVER = "http://localhost:8000/api"  # override temporarily
+# DEFAULT_API_SERVER = "http://localhost:8000/api"  # override temporarily
 
 
 ################################################################
