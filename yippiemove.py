@@ -395,8 +395,9 @@ def wizard(action=None, args=[]):
     if isinstance(args, list):
         args = convert_arg_strings_to_dict(args)
 
-    def get_email_account_from_user():
-        providers = loads(list_objects("provider"))
+    providers = loads(list_objects("provider"))
+
+    def get_email_account_from_user(providers):
         other_choice = len(providers) + 1
 
         for i in range(len(providers)):
@@ -436,7 +437,7 @@ def wizard(action=None, args=[]):
         okay = False
 
         while not okay:
-            account = get_email_account_from_user()
+            account = get_email_account_from_user(providers)
 
             account_data = {
                 'move_job': move_job['id'],
@@ -464,9 +465,11 @@ def wizard(action=None, args=[]):
 
                 if account_type in status:
                     if status[account_type]['status_code'] == "account-error":
-                        print "  Could not connect to the email account. Please double-check your credentials."
+                        print "  Could not connect to the email account. Please double-check your credentials.\n"
+
+                        # Credentials were wrong, let's remove that account so we
+                        # don't have a surplus of wasted accounts
                         remove("email_account", email_account['id'])
-                        print
                         time.sleep(2)
                         break
 
@@ -477,14 +480,15 @@ def wizard(action=None, args=[]):
         print "  %s email account has been indexed." % account_type.capitalize()
         return email_account
 
+    new_order = loads(create("order"))
+    new_move_job = loads(create("move_job", args={'order': new_order['id']}))
+
     print
     print "=" * 64
     print "  Step 1: Where are we moving from?"
     print "=" * 64
     print
 
-    new_order = loads(create("order"))
-    new_move_job = loads(create("move_job", args={'order': new_order['id']}))
     source_email_account = get_and_verify_email_account(new_move_job, "source")
 
     print
@@ -572,7 +576,7 @@ def wizard(action=None, args=[]):
             print "  To add credits to your account, please use the YippieMove website."
             print "  To pay for this order later using this utility, you should use:"
             print
-            print "  $ yippiemove.py create payment order=%s" % new_order['id']
+            print "  $ ./yippiemove.py create payment order=%s" % new_order['id']
         else:
             print "  Payment of %s credits was successful." % payment['amount']
     else:
@@ -581,7 +585,7 @@ def wizard(action=None, args=[]):
         print "  To pay later you'll need this Order's ID: %s" % new_order['id']
         print "  To pay using this utility, simply execute the following when you're ready:"
         print
-        print "    $ yippiemove.py create payment order=%s" % new_order['id']
+        print "    $ ./yippiemove.py create payment order=%s" % new_order['id']
         print
 
 
