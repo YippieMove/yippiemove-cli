@@ -318,6 +318,10 @@ def list_objects(object_type, args=[]):
     elif object_type == "provider":
         LIST_URL = "/providers/"
 
+    elif object_type == "email_account":
+        check_requirements(["move_job"], args)
+        LIST_URL = "/users/current/move_jobs/%s/accounts/" % args['move_job']
+
     response = get(url=url("%s?%s" % (LIST_URL, urlencode(args))))
     return response.content
 
@@ -678,7 +682,7 @@ def main(argv=None):
     parser_delete.set_defaults(func=remove)
 
     parser_list = subparsers.add_parser("list", help="List all objects of a given type on YippieMove.")
-    parser_list.add_argument("object_type", help="Type of objects to list.", choices=["move_job", "order", "email_folder", "provider"])
+    parser_list.add_argument("object_type", help="Type of objects to list.", choices=["move_job", "order", "email_folder", "provider", "email_account"])
     parser_list.add_argument("args",      help="Arguments to use as filters.", nargs="*")
     parser_list.set_defaults(func=list_objects)
 
