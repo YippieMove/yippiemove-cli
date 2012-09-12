@@ -31,6 +31,22 @@ To remove the current token:
     $ ./yippiemove.py token delete
     Token removed.
 
+### Obtaining a token
+
+If you do not have a token to use for the API, you can obtain one for
+your own account by using the token wizard:
+
+    $ ./yippiemove.py token wizard
+
+The wizard will ask you for the Application Key and Secret for your
+application, and then provide you with a URL to visit in your web browser.
+There, you'll give permission to the application to use your account and
+will be provided an access code. Copy the access code and paste it into
+the wizard when it asks for it. With the access code, the wizard will
+request a token for your account and automatically set it for you. For
+your records, the wizard will also tell you the token should you choose
+to save it elsewhere.
+
 ## Using the Wizard
 
 The simplest way to create a new email transfer using this utility is to 
