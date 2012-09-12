@@ -288,19 +288,22 @@ def update(object_type, args, object_id):
     logbook.info("%s with id %s was updated." % (object_type, object_id))
 
 
-def remove(object_type, object_id):
+def remove(object_type, object_id, args=[]):
     """Handle the deletion of an object."""
 
+    args = convert_arg_strings_to_dict(args)
+
     if object_type == "order":
-        DELETE_URL = "/users/current/orders/%s/"
+        DELETE_URL = "/users/current/orders/%s/" % object_id
 
     elif object_type == "move_job":
-        DELETE_URL = "/users/current/move_jobs/%s/"
+        DELETE_URL = "/users/current/move_jobs/%s/" % object_id
 
     elif object_type == "email_account":
-        DELETE_URL = "/users/current/move_jobs/1/accounts/%s/"
+        check_requirements(["move_job"], args)
+        DELETE_URL = "/users/current/move_jobs/%s/accounts/%s/" % (args['move_job'], object_id)
 
-    delete(url=url(DELETE_URL % object_id))
+    delete(url=url(DELETE_URL))
     logbook.info("Deleted %s with id %s." % (object_type, object_id))
 
 
@@ -317,8 +320,8 @@ def list_objects(object_type, args=[]):
         LIST_URL = "/users/current/move_jobs/"
 
     elif object_type == "email_folder":
-        check_requirements(["email_account"], args)
-        LIST_URL = "/users/current/move_jobs/1/accounts/%s/email_folders/" % args['email_account']
+        check_requirements(["move_job", "email_account"], args)
+        LIST_URL = "/users/current/move_jobs/%s/accounts/%s/email_folders/" % (args['move_job'], args['email_account'])
 
     elif object_type == "provider":
         LIST_URL = "/providers/"
@@ -474,7 +477,7 @@ def wizard(action=None, args=[]):
 
                         # Credentials were wrong, let's remove that account so we
                         # don't have a surplus of wasted accounts
-                        remove("email_account", email_account['id'])
+                        remove("email_account", email_account['id'], args={'move_job': move_job['id']})
                         time.sleep(2)
                         break
 
@@ -510,7 +513,7 @@ def wizard(action=None, args=[]):
     print "=" * 64
     print
 
-    folders = loads(list_objects("email_folder", {'email_account': source_email_account['id']}))
+    folders = loads(list_objects("email_folder", {'email_account': source_email_account['id'], 'move_job': new_move_job['id']}))
 
     print "  Please specify the folders you'd like to transfer. For each, if"
     print "  you'd like to rename the folder, enter a new name. If you'd like"
@@ -648,7 +651,7 @@ def token_admin(action, token_string=None):
         print "To obtain a token, please enter your application's public"
         print "and private keys."
         print
-        
+
         CLIENT_KEY = raw_input(" Public Key: ")
         CLIENT_SECRET = raw_input("Private Key: ")
 
@@ -724,6 +727,7 @@ def main(argv=None):
     parser_delete = subparsers.add_parser("delete", help="Delete objects on YippieMove.")
     parser_delete.add_argument("object_type", help="Type of object to be deleted.", choices=["move_job", "order", "email_account"])
     parser_delete.add_argument("object_id", help="ID of object to delete.")
+    parser_delete.add_argument("args",      help="Any required properties to locate object, i.e. move_job=2", nargs="*")
     parser_delete.set_defaults(func=remove)
 
     parser_list = subparsers.add_parser("list", help="List all objects of a given type on YippieMove.")
