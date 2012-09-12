@@ -22,9 +22,9 @@ API_ACCESS_TOKEN = None  # --token=ceaba709b1
 VERSION = "0.1"
 DEFAULT_API_SERVER = "https://api.yippiemove.com"
 # DEFAULT_API_SERVER = "http://localhost:8000/api"  # override temporarily
-OAUTH_AUTHORIZE_URL = "http://www.yippiemove.com/oauth2/authorize"
-OAUTH_ACCESS_CODE_URL = "http://www.yippiemove.com/oauth2/code/"
-OAUTH_TOKEN_URL = "http://www.yippiemove.com/oauth2/token"
+OAUTH_AUTHORIZE_URL = "https://www.yippiemove.com/oauth2/authorize"
+OAUTH_ACCESS_CODE_URL = "https://www.yippiemove.com/oauth2/code/"
+OAUTH_TOKEN_URL = "https://www.yippiemove.com/oauth2/token"
 
 
 ################################################################
@@ -648,7 +648,7 @@ def token_admin(action, token_string=None):
         print "To obtain a token, please enter your application's public"
         print "and private keys."
         print
-        
+
         CLIENT_KEY = raw_input(" Public Key: ")
         CLIENT_SECRET = raw_input("Private Key: ")
 
