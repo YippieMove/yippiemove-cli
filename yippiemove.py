@@ -26,6 +26,7 @@ OAUTH_AUTHORIZE_URL = "https://www.yippiemove.com/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "https://www.yippiemove.com/oauth2/code/"
 OAUTH_TOKEN_URL = "https://www.yippiemove.com/oauth2/token"
 
+VERIFY_SSL = True
 
 ################################################################
 # Utilities
@@ -685,7 +686,7 @@ def token_admin(action, token_string=None):
         }
         basic_auth = b64encode("%s:%s" % (CLIENT_KEY, CLIENT_SECRET))
         auth = HTTPBasicAuth(type_="Basic", data=basic_auth)
-        response = requests.get("%s?%s" % (OAUTH_TOKEN_URL, urlencode(parameters)), auth=auth)
+        response = requests.get("%s?%s" % (OAUTH_TOKEN_URL, urlencode(parameters)), auth=auth, verify=VERIFY_SSL)
         json = response.json
         token_admin("set", json['access_token'])
         print "Future actions you now take will use this access token by default."
