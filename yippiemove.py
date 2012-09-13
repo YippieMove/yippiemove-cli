@@ -376,7 +376,9 @@ def status(object_type, object_id):
 
         if len(move_jobs):
             for job in move_jobs:
-                print "    -%s" % job['id']
+                print "    -MoveJob #%s" % job['id']
+                data = raw_status("move_job", job['id'])
+                print "     %s" % data['overall']['status_message']
         else:
             print "    -None"
         print
@@ -587,6 +589,11 @@ def wizard(action=None, args=[]):
             print "  $ ./yippiemove.py create payment order=%s" % new_order['id']
         else:
             print "  Payment of %s credits was successful." % payment['amount']
+            print
+            print "  Your jobs will start as soon as possible, but you can check on"
+            print "  their status using the status subcommand:"
+            print
+            print "  $ ./yippiemove.py status order %s" % new_order['id']
     else:
         # If they choose not to pay now, tell them the Order ID and, to be
         # helpful, give them the CLI command they'll need to make payment later.
