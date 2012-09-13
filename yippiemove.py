@@ -14,17 +14,19 @@ from getpass import getpass
 from urllib import urlencode
 from json import loads
 from base64 import b64encode
+from urlparse import urlparse
 
 import logbook
 
 API_ACCESS_TOKEN = None  # --token=ceaba709b1
+API_SERVER = None
 
 VERSION = "0.1"
-DEFAULT_API_SERVER = "https://api.yippiemove.com"
+DEFAULT_API_SERVER = "http://api.yippiemove.com/"
 # DEFAULT_API_SERVER = "http://localhost:8000/api"  # override temporarily
-OAUTH_AUTHORIZE_URL = "https://www.yippiemove.com/oauth2/authorize"
-OAUTH_ACCESS_CODE_URL = "https://www.yippiemove.com/oauth2/code/"
-OAUTH_TOKEN_URL = "https://www.yippiemove.com/oauth2/token"
+OAUTH_AUTHORIZE_URL = "http://%s/oauth2/authorize"
+OAUTH_ACCESS_CODE_URL = "http://%s/oauth2/code/"
+OAUTH_TOKEN_URL = "http://%s/oauth2/token"
 
 VERIFY_SSL = True
 
@@ -54,6 +56,21 @@ def check_requirements(required, args):
     for r in required:
         if not r in args:
             raise BadRequestException("You must specify %s." % r)
+
+
+def get_oauth_url_for(method):
+    """Returns the OAuth2 URLs we need based on the given API_SERVER."""
+
+    netloc = urlparse(API_SERVER).netloc
+
+    if method == "authorize":
+        return OAUTH_AUTHORIZE_URL % netloc
+    elif method == "access_code":
+        return OAUTH_ACCESS_CODE_URL % netloc
+    elif method == "token":
+        return OAUTH_TOKEN_URL % netloc
+    else:
+        return ""
 
 
 ################################################################
@@ -665,14 +682,14 @@ def token_admin(action, token_string=None):
 
         parameters = {
             "client_id": CLIENT_KEY,
-            "redirect_uri": OAUTH_ACCESS_CODE_URL,
+            "redirect_uri": get_oauth_url_for("access_code"),
             "response_type": "code"
         }
 
         print
         print "Please visit the following URL in your browser:"
         print
-        print "    %s?%s" % (OAUTH_AUTHORIZE_URL, urlencode(parameters))
+        print "    %s?%s" % (get_oauth_url_for("authorize"), urlencode(parameters))
         print
         print "When you've accepted and received your access code,"
         print "please enter it below:"
@@ -682,14 +699,15 @@ def token_admin(action, token_string=None):
             "client_id": CLIENT_KEY,
             "grant_type": "authorization_code",
             "code": ACCESS_CODE,
-            "redirect_uri": OAUTH_ACCESS_CODE_URL
+            "redirect_uri": get_oauth_url_for("access_code")
         }
         basic_auth = b64encode("%s:%s" % (CLIENT_KEY, CLIENT_SECRET))
         auth = HTTPBasicAuth(type_="Basic", data=basic_auth)
-        response = requests.get("%s?%s" % (OAUTH_TOKEN_URL, urlencode(parameters)), auth=auth, verify=VERIFY_SSL)
+        response = requests.get("%s?%s" % (get_oauth_url_for("token"), urlencode(parameters)), auth=auth, verify=VERIFY_SSL)
         json = response.json
         token_admin("set", json['access_token'])
         print "Future actions you now take will use this access token by default."
+
 
 ################################################################
 # Main method
