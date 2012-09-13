@@ -758,6 +758,8 @@ def main(argv=None):
     # FIXME Should we have two API globals?
     if args.api_url.endswith("/"):
         args.api_url = args.api_url[:-1]
+    if not args.api_url.startswith("http"):  # if schema is missing, enforce https
+        args.api_url = "https://%s" % args.api_url
     API_SERVER = args.api_url
 
     args = vars(args)
