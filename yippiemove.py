@@ -48,6 +48,7 @@ def convert_arg_strings_to_dict(args):
         dictionary[pieces[0]] = pieces[1]
     return dictionary
 
+
 def check_requirements(required, args):
     for r in required:
         if not r in args:
@@ -389,7 +390,6 @@ def status(object_type, object_id):
         print "=" * 64
         print "  %s" % data['overall']['status_message']
         print
-        # print response.content
 
 
 ################################################################
