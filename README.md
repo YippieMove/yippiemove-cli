@@ -3,6 +3,17 @@ yippiemove-cli
 
 YippieMove Command Line Interface (CLI) written in Python.
 
+## Creating YippieMove client applications
+
+To use the YippieMove API, you'll need to create an API client if you
+haven't already. Doing so is easily done from your YippieMove Account 
+preferences page located [here](https://www.yippiemove.com/accounts/api_client/).
+
+Enter a name for your application and click "Create client". Your new
+application will be listed in the table wih the Application Key and
+Secret you'll need later for obtaining tokens to use YippieMove through
+your client.
+
 ## Using Tokens
 
 To use the YippieMove API you'll need a user's access token (usually yours). 
