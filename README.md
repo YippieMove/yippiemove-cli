@@ -1,6 +1,3 @@
-yippiemove-cli
-==============
-
 # Please read!
 
 **This is a technology preview and will not work at the moment.**
