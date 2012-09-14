@@ -61,7 +61,12 @@ def check_requirements(required, args):
 def get_oauth_url_for(method):
     """Returns the OAuth2 URLs we need based on the given API_SERVER."""
 
-    netloc = urlparse(API_SERVER).netloc
+    domain_pieces = urlparse(API_SERVER).netloc.split(".")
+
+    if domain_pieces[0] == "api":
+        domain_pieces = domain_pieces[1:]
+
+    netloc = ".".join(domain_pieces)
 
     if method == "authorize":
         return OAUTH_AUTHORIZE_URL % netloc
