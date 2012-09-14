@@ -1,7 +1,22 @@
 yippiemove-cli
 ==============
 
-YippieMove Command Line Interface (CLI) written in Python.
+# Please read!
+
+**This is a technology preview and will not work at the moment.**
+We will announce the launch of the API on our [blog](http://wireload.net/news/).
+To get an email once we launch the API, please sign up on the [API waitlist](http://www.yippiemove.com/api/signup).
+
+## About 
+
+*yippiemove-cli* is a Command Line Interface (CLI) for [YippieMove](http://www.yippiemove) written in Python.
+With this tool you can create and manage email migrations directly on the command line.
+
+## Installation
+
+To install the required libraries, simply run:
+
+	$ pip install -r requirements.txt
 
 ## Creating YippieMove client applications
 
