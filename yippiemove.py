@@ -728,12 +728,16 @@ def token_admin(action, token_string=None):
             "code": ACCESS_CODE,
             "redirect_uri": get_oauth_url_for("access_code")
         }
+
         basic_auth = b64encode("%s:%s" % (CLIENT_KEY, CLIENT_SECRET))
         auth = HTTPBasicAuth(type_="Basic", data=basic_auth)
-        response = requests.get("%s?%s" % (get_oauth_url_for("token"), urlencode(parameters)), auth=auth, verify=VERIFY_SSL)
-        json = response.json
-        token_admin("set", json['access_token'])
-        print "Future actions you now take will use this access token by default."
+        try:
+            response = requests.get("%s?%s" % (get_oauth_url_for("token"), urlencode(parameters)), auth=auth, verify=VERIFY_SSL)
+            json = response.json
+            token_admin("set", json['access_token'])
+            print "Future actions you now take will use this access token by default."
+        except:
+            print "There was a problem retrieving your token. Please try again."
 
 
 ################################################################
