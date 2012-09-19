@@ -23,7 +23,7 @@ API_SERVER = None
 
 VERSION = "0.1"
 DEFAULT_API_SERVER = "https://api.yippiemove.com/"
-DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
+# DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
 OAUTH_AUTHORIZE_URL = "%s://%s/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "%s://%s/oauth2/code/"
 OAUTH_TOKEN_URL = "%s://%s/oauth2/token/"
