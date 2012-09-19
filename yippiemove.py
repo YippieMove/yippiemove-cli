@@ -23,7 +23,7 @@ API_SERVER = None
 
 VERSION = "0.1"
 DEFAULT_API_SERVER = "http://api.yippiemove.com/"
-DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
+# DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
 OAUTH_AUTHORIZE_URL = "http://%s/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "http://%s/oauth2/code/"
 OAUTH_TOKEN_URL = "http://%s/oauth2/token"
@@ -77,6 +77,49 @@ def get_oauth_url_for(method):
         return OAUTH_TOKEN_URL % netloc
     else:
         return ""
+
+
+def uri_for_resource(object_type, object_id=None, args=[]):
+    """Given an object type, an optional ID, and optional
+    args, construct its URI to speaking to the server
+    about the object."""
+
+    if object_type == "order":
+        GET_URL = "/users/current/orders/%s/" % object_id
+
+    elif object_type == "user":
+        GET_URL = "/users/%s/" % object_id
+
+    elif object_type == "move_job":
+        GET_URL = "/users/current/move_jobs/%s/" % object_id
+
+    elif object_type == "payment":
+        GET_URL = "/users/current/orders/%s/payment/" % object_id
+
+    elif object_type == "batch":
+        GET_URL = "/users/current/batches/%s/" % object_id
+
+    elif object_type == "email_account":
+        GET_URL = "/users/current/move_jobs/1/accounts/%s/" % object_id
+
+    elif object_type == "provider":
+        GET_URL = "/providers/%s/" % object_id
+
+    else:  # if object_type is unknown, return None
+        return None
+
+    return GET_URL
+
+
+def introspect_dictionary_for_uris(dictionary):
+    """Accepts a dictionary and introspects it to discover
+    keys which are object references, and attempts to
+    replace them with the URI of the object they represent."""
+
+    for key, value in dictionary.items():
+        replacement = uri_for_resource(key, value)
+        if replacement is not None:
+            dictionary[key] = replacement
 
 
 ################################################################
@@ -242,6 +285,8 @@ def create(object_type, args=[]):
         CREATE_URL = "/users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
         del args["job_type"]
 
+    introspect_dictionary_for_uris(args)
+
     response = post(url=url(CREATE_URL), data=args)
 
     return response.content
@@ -252,28 +297,9 @@ def read(object_type, object_id, args=[]):
 
     args = convert_arg_strings_to_dict(args)
 
-    if object_type == "order":
-        GET_URL = "/users/current/orders/%s/"
+    GET_URL = uri_for_resource(object_type, object_id=object_id, args=args)
 
-    elif object_type == "user":
-        GET_URL = "/users/%s/"
-
-    elif object_type == "move_job":
-        GET_URL = "/users/current/move_jobs/%s/"
-
-    elif object_type == "payment":
-        GET_URL = "/users/current/orders/%s/payment/"
-
-    elif object_type == "batch":
-        GET_URL = "/users/current/batches/%s/"
-
-    elif object_type == "email_account":
-        GET_URL = "/users/current/move_jobs/1/accounts/%s/"
-
-    elif object_type == "provider":
-        GET_URL = "/providers/%s/"
-
-    response = get(url="%s?%s" % (url(GET_URL % object_id), urlencode(args)))
+    response = get(url="%s?%s" % (url(GET_URL), urlencode(args)))
     return response.content
 
 
@@ -282,34 +308,27 @@ def update(object_type, args, object_id):
 
     args = convert_arg_strings_to_dict(args)
 
-    if object_type == "order":
-        UPDATE_URL = "/users/current/orders/%s/"
+    UPDATE_URL = uri_for_resource(object_type, object_id=object_id, args=args)
 
-    elif object_type == "move_job":
-        UPDATE_URL = "/users/current/move_jobs/%s/"
+    if UPDATE_URL is None:  # special cases
 
-    elif object_type == "batch":
-        UPDATE_URL = "/users/current/batches/%s/"
+        if object_type == "email_job":
+            check_requirements(["move_job"], args)
+            UPDATE_URL = "/users/current/move_jobs/%s/email_part/"
 
-    elif object_type == "email_account":
-        UPDATE_URL = "/users/current/move_jobs/1/accounts/%s/"
+        elif object_type == "component_job":
+            check_requirements(["move_job", "job_type"], args)
+            UPDATE_URL = "/users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
+            del args["job_type"]
 
-    elif object_type == "email_job":
-        check_requirements(["move_job"], args)
-        UPDATE_URL = "/users/current/move_jobs/%s/email_part/"
+        elif object_type == "email_folder":
+            check_requirements(["move_job", "email_account"], args)
+            UPDATE_URL = "/users/current/move_jobs/%s/accounts/%s/email_folders/%s/" % (args['move_job'], args['email_account'], object_id)
+            del args["move_job"]
+            del args["email_account"]
 
-    elif object_type == "component_job":
-        check_requirements(["move_job", "job_type"], args)
-        UPDATE_URL = "/users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
-        del args["job_type"]
-
-    elif object_type == "email_folder":
-        check_requirements(["move_job", "email_account"], args)
-        UPDATE_URL = "/users/current/move_jobs/%s/accounts/%s/email_folders/" % (args['move_job'], args['email_account']) + "%s/"
-        del args["move_job"]
-        del args["email_account"]
-
-    put(url=url(UPDATE_URL % object_id), data=args)
+    introspect_dictionary_for_uris(args)
+    put(url=url(UPDATE_URL), data=args)
     logbook.info("%s with id %s was updated." % (object_type, object_id))
 
 
