@@ -22,11 +22,11 @@ API_ACCESS_TOKEN = None  # --token=ceaba709b1
 API_SERVER = None
 
 VERSION = "0.1"
-DEFAULT_API_SERVER = "http://api.yippiemove.com/"
-# DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
-OAUTH_AUTHORIZE_URL = "http://%s/oauth2/authorize"
-OAUTH_ACCESS_CODE_URL = "http://%s/oauth2/code/"
-OAUTH_TOKEN_URL = "http://%s/oauth2/token"
+DEFAULT_API_SERVER = "https://api.yippiemove.com/"
+DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
+OAUTH_AUTHORIZE_URL = "%s://%s/oauth2/authorize"
+OAUTH_ACCESS_CODE_URL = "%s://%s/oauth2/code/"
+OAUTH_TOKEN_URL = "%s://%s/oauth2/token/"
 
 VERIFY_SSL = True
 
@@ -62,7 +62,9 @@ def check_requirements(required, args):
 def get_oauth_url_for(method):
     """Returns the OAuth2 URLs we need based on the given API_SERVER."""
 
-    domain_pieces = urlparse(API_SERVER).netloc.split(".")
+    parsed = urlparse(API_SERVER)
+    scheme = parsed.scheme
+    domain_pieces = parsed.netloc.split(".")
 
     if domain_pieces[0] == "api":
         domain_pieces = domain_pieces[1:]
@@ -70,11 +72,11 @@ def get_oauth_url_for(method):
     netloc = ".".join(domain_pieces)
 
     if method == "authorize":
-        return OAUTH_AUTHORIZE_URL % netloc
+        return OAUTH_AUTHORIZE_URL % (scheme, netloc)
     elif method == "access_code":
-        return OAUTH_ACCESS_CODE_URL % netloc
+        return OAUTH_ACCESS_CODE_URL % (scheme, netloc)
     elif method == "token":
-        return OAUTH_TOKEN_URL % netloc
+        return OAUTH_TOKEN_URL % (scheme, netloc)
     else:
         return ""
 
@@ -194,7 +196,7 @@ def make_request(url, method="GET", data={}):
     func = getattr(requests, method.lower())
     logbook.debug("%s %s (%r)" % (method, url, data))
     auth = HTTPBasicAuth(data=API_ACCESS_TOKEN)
-    response = func(url, auth=auth, data=data)
+    response = func(url, auth=auth, data=data, verify=VERIFY_SSL)
 
     if response.status_code == 200:
         return response
