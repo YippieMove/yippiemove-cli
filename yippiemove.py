@@ -5,17 +5,18 @@
 Command-line interface for the YippieMove API.
 """
 
+from base64 import b64encode
+from getpass import getpass
+from json import loads
+from urllib import urlencode
+from urlparse import urlparse
+import argparse
+import json
+import os
 import sys
 import time
-import os
-import argparse
-import requests
-from getpass import getpass
-from urllib import urlencode
-from json import loads
-from base64 import b64encode
-from urlparse import urlparse
 
+import requests
 import logbook
 
 API_ACCESS_TOKEN = None  # --token=ceaba709b1
@@ -194,9 +195,14 @@ class HTTPBasicAuth(requests.auth.AuthBase):
 
 def make_request(url, method="GET", data={}):
     func = getattr(requests, method.lower())
-    logbook.debug("%s %s (%r)" % (method, url, data))
     auth = HTTPBasicAuth(data=API_ACCESS_TOKEN)
     response = func(url, auth=auth, data=data, verify=VERIFY_SSL)
+    try:
+        response_json = json.loads(response.content)
+    except:
+        response_json = response.content
+
+    logbook.debug("%s %s\n%r\n%r" % (method, url, data, response_json))
 
     if response.status_code == 200:
         return response
