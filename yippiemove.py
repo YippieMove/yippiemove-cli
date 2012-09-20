@@ -12,6 +12,7 @@ from urllib import urlencode
 from urlparse import urlparse
 import argparse
 import json
+import operator
 import os
 import sys
 import time
@@ -457,12 +458,13 @@ def wizard(action=None, args=[]):
         args = convert_arg_strings_to_dict(args)
 
     providers = loads(list_objects("provider"))
+    providers = sorted(providers, key=operator.itemgetter('name'))
 
     def get_email_account_from_user(providers):
         other_choice = len(providers) + 1
 
-        for i in range(len(providers)):
-            print "  %2d) %s" % (i + 1, providers[i]['name'])
+        for i, provider in enumerate(providers):
+            print "  %2d) %s" % (i + 1, provider['name'])
 
         print "  " + "==" * 16
         print "  %2d) Other" % other_choice
