@@ -198,11 +198,11 @@ def make_request(url, method="GET", data={}):
     auth = HTTPBasicAuth(data=API_ACCESS_TOKEN)
     response = func(url, auth=auth, data=data, verify=VERIFY_SSL)
     try:
-        response_json = json.loads(response.content)
+        response_json = json.dumps(json.loads(response.content))
     except:
         response_json = response.content
 
-    logbook.debug("%s %s\n%r\n%r" % (method, url, data, response_json))
+    logbook.debug("%s %s\n%s\n%s" % (method, url, json.dumps(data), response_json))
 
     if response.status_code == 200:
         return response
