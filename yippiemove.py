@@ -10,6 +10,7 @@ from getpass import getpass
 from json import loads
 from urllib import urlencode
 from urlparse import urlparse
+from urlparse import urlsplit, urlunsplit, urljoin
 import argparse
 import json
 import operator
@@ -24,8 +25,8 @@ API_ACCESS_TOKEN = None  # --token=ceaba709b1
 API_SERVER = None
 
 VERSION = "0.1"
-DEFAULT_API_SERVER = "https://api.yippiemove.com/"
-# DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/"  # override temporarily
+DEFAULT_API_SERVER = "https://api.yippiemove.com/v1/"
+# DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/v1/"  # override temporarily
 OAUTH_AUTHORIZE_URL = "%s://%s/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "%s://%s/oauth2/code/"
 OAUTH_TOKEN_URL = "%s://%s/oauth2/token/"
@@ -37,8 +38,22 @@ VERIFY_SSL = True
 # Utilities
 ################################################################
 
-def url(path):
-    return API_SERVER + path
+def url(*path):
+    return url_path_join(API_SERVER, *path)
+
+
+def url_path_join(*parts):
+    """Join the parts of the URL. If any part begins with /, assume it's an absolute URL."""
+
+    if len(parts) == 1 or not parts[1]:
+        return parts[0]
+
+    if parts[1][0] == '/':
+        return url_path_join(urljoin(parts[0], parts[1]), *parts[2:])
+    elif parts[0][-1] == '/':
+        return url_path_join("".join(parts[:2]), *parts[2:])
+    else:
+        return url_path_join("/".join(parts[:2]), *parts[2:])
 
 
 def convert_arg_strings_to_dict(args):
@@ -457,7 +472,9 @@ def wizard(action=None, args=[]):
     if isinstance(args, list):
         args = convert_arg_strings_to_dict(args)
 
-    providers = loads(list_objects("provider"))
+    current_user = get(url('users/current/')).json
+
+    providers = get(url('providers/')).json
     providers = sorted(providers, key=operator.itemgetter('name'))
 
     def get_email_account_from_user(providers):
@@ -503,7 +520,7 @@ def wizard(action=None, args=[]):
             account = get_email_account_from_user(providers)
 
             account_data = {
-                'move_job': move_job['id'],
+                'move_job': move_job['link'],
                 'is_destination': account_type == "destination",
                 'login': account['login'],
                 'password': account['password'],
@@ -515,7 +532,7 @@ def wizard(action=None, args=[]):
             if 'id' in account:
                 account_data['provider'] = account['identifier']
 
-            email_account = loads(create("email_account", account_data))
+            email_account = post(url(move_job['link'], 'accounts/'), account_data).json
 
             print "  Indexing email account..."
 
@@ -524,7 +541,7 @@ def wizard(action=None, args=[]):
             while True:
 
                 time.sleep(5)
-                status = raw_status("move_job", move_job['id'])
+                status = get(url(move_job['link'], 'status/')).json
 
                 if account_type in status:
                     if status[account_type]['status_code'] == "account-error":
@@ -532,7 +549,7 @@ def wizard(action=None, args=[]):
 
                         # Credentials were wrong, let's remove that account so we
                         # don't have a surplus of wasted accounts
-                        remove("email_account", email_account['id'], args={'move_job': move_job['id']})
+                        delete(url(email_account['link']))
                         time.sleep(2)
                         break
 
@@ -543,8 +560,8 @@ def wizard(action=None, args=[]):
         print "  %s email account has been indexed." % account_type.capitalize()
         return email_account
 
-    new_order = loads(create("order"))
-    new_move_job = loads(create("move_job", args={'order': new_order['id']}))
+    new_order = post(url(current_user['link'], 'orders/')).json
+    new_move_job = post(url(current_user['link'], 'move_jobs/'), {'order': new_order['link']}).json
 
     print
     print "=" * 64
@@ -568,7 +585,7 @@ def wizard(action=None, args=[]):
     print "=" * 64
     print
 
-    folders = loads(list_objects("email_folder", {'email_account': source_email_account['id'], 'move_job': new_move_job['id']}))
+    folders = get(url(source_email_account['link'], 'email_folders/'))
 
     print "  Please specify the folders you'd like to transfer. For each, if"
     print "  you'd like to rename the folder, enter a new name. If you'd like"
@@ -583,20 +600,20 @@ def wizard(action=None, args=[]):
 
     for folder in folders:
         choice = raw_input(format_string % folder['name'])
-        updates = {'move_job': new_move_job['id'], 'email_account': source_email_account['id']}
+        updates = {'move_job': new_move_job['link'], 'email_account': source_email_account['link']}
 
         if choice == "skip":
             updates['selected'] = False
-            update("email_folder", object_id=folder['id'], args=updates)
+            put(url(folder['link']), data=updates)
         elif choice != "":
             updates['destination_name'] = choice
-            update("email_folder", object_id=folder['id'], args=updates)
+            put(url(folder['link']), data=updates)
 
     print
     print "  Folders saved."
 
     # We now officially have enough information to constitute an EmailJob.
-    create("email_job", {'move_job': new_move_job['id']})
+    post(url(new_move_job['link'], 'email_jobs/'), data={'move_job': new_move_job['link']})
 
     print
     print "=" * 64
@@ -605,7 +622,7 @@ def wizard(action=None, args=[]):
     print
 
     # refresh the Order
-    new_order = loads(read("order", new_order['id']))
+    new_order = get(url(new_order['link']))
 
     # Offer option to pay for Order now, or give Order number to allow them to pay later.
     print "  To begin your order you must pay the full balance of"
@@ -633,27 +650,27 @@ def wizard(action=None, args=[]):
         # any errors that occur (such as not having enough credits)
         print "  Creating payment..."
         try:
-            payment = loads(create("payment", {"order": new_order['id']}))
+            payment = post(url(new_order['link'], 'payment')).json
         except NotEnoughCreditsException:
             print "  You do not have enough available credits to pay for this Order."
             print "  To add credits to your account, please use the YippieMove website."
             print "  To pay for this order later using this utility, you should use:"
             print
-            print "  $ ./yippiemove.py create payment order=%s" % new_order['id']
+            print "  $ ./yippiemove.py create payment order=%s" % new_order['link']
         else:
             print "  Payment of %s credits was successful." % payment['amount']
             print
             print "  Your jobs will start as soon as possible, but you can check on"
             print "  their status using the status subcommand:"
             print
-            print "  $ ./yippiemove.py status order %s" % new_order['id']
+            print "  $ ./yippiemove.py status order %s" % new_order['link']
     else:
         # If they choose not to pay now, tell them the Order ID and, to be
         # helpful, give them the CLI command they'll need to make payment later.
         print "  To pay later you'll need this Order's ID: %s" % new_order['id']
         print "  To pay using this utility, simply execute the following when you're ready:"
         print
-        print "    $ ./yippiemove.py create payment order=%s" % new_order['id']
+        print "    $ ./yippiemove.py create payment order=%s" % new_order['link']
         print
 
 
