@@ -25,8 +25,18 @@ API_ACCESS_TOKEN = None  # --token=ceaba709b1
 API_SERVER = None
 
 VERSION = "0.1"
-DEFAULT_API_SERVER = "https://api.yippiemove.com/v1/"
-# DEFAULT_API_SERVER = "http://api.yippiemove.com:8000/v1/"  # override temporarily
+
+""" 
+
+To override the API URL, simply run: 
+$ export DEFAULT_API_SERVER=https://api.foobar.yippiemove.com
+
+"""
+try:
+    DEFAULT_API_SERVER = os.environ['YIPPIEMOVE_API']
+except:
+    DEFAULT_API_SERVER = "https://api.yippiemove.com/v1/"
+
 OAUTH_AUTHORIZE_URL = "%s://%s/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "%s://%s/oauth2/code/"
 OAUTH_TOKEN_URL = "%s://%s/oauth2/token/"
