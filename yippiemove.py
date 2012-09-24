@@ -104,25 +104,25 @@ def uri_for_resource(object_type, object_id=None, args=[]):
     about the object."""
 
     if object_type == "order":
-        GET_URL = "/users/current/orders/%s/" % object_id
+        GET_URL = "users/current/orders/%s/" % object_id
 
     elif object_type == "user":
-        GET_URL = "/users/%s/" % object_id
+        GET_URL = "users/%s/" % object_id
 
     elif object_type == "move_job":
-        GET_URL = "/users/current/move_jobs/%s/" % object_id
+        GET_URL = "users/current/move_jobs/%s/" % object_id
 
     elif object_type == "payment":
-        GET_URL = "/users/current/orders/%s/payment/" % object_id
+        GET_URL = "users/current/orders/%s/payment/" % object_id
 
     elif object_type == "batch":
-        GET_URL = "/users/current/batches/%s/" % object_id
+        GET_URL = "users/current/batches/%s/" % object_id
 
     elif object_type == "email_account":
-        GET_URL = "/users/current/move_jobs/1/accounts/%s/" % object_id
+        GET_URL = "users/current/move_jobs/1/accounts/%s/" % object_id
 
     elif object_type == "provider":
-        GET_URL = "/providers/%s/" % object_id
+        GET_URL = "providers/%s/" % object_id
 
     else:  # if object_type is unknown, return None
         return None
@@ -279,34 +279,34 @@ def create(object_type, args=[]):
     args = convert_arg_strings_to_dict(args)
 
     if object_type == "order":
-        CREATE_URL = "/users/current/orders/"
+        CREATE_URL = "users/current/orders/"
 
     elif object_type == "move_job":
-        CREATE_URL = "/users/current/move_jobs/"
+        CREATE_URL = "users/current/move_jobs/"
 
     elif object_type == "payment":
         check_requirements(["order"], args)
-        CREATE_URL = "/users/current/orders/%s/payment/" % args['order']
+        CREATE_URL = "users/current/orders/%s/payment/" % args['order']
 
     elif object_type == "batch":
-        CREATE_URL = "/users/current/batches/"
+        CREATE_URL = "users/current/batches/"
 
     elif object_type == "email_account":
         check_requirements(["move_job"], args)
-        CREATE_URL = "/users/current/move_jobs/%s/accounts/" % args['move_job']
+        CREATE_URL = "users/current/move_jobs/%s/accounts/" % args['move_job']
 
     elif object_type == "email_folder":
         check_requirements(["email_account"], args)
-        CREATE_URL = "/users/current/move_jobs/1/accounts/%s/email_folders/" % args['email_account']
+        CREATE_URL = "users/current/move_jobs/1/accounts/%s/email_folders/" % args['email_account']
         del args['email_account']
 
     elif object_type == "email_job":
         check_requirements(["move_job"], args)
-        CREATE_URL = "/users/current/move_jobs/%s/email_part/" % args['move_job']
+        CREATE_URL = "users/current/move_jobs/%s/email_part/" % args['move_job']
 
     elif object_type == "component_job":
         check_requirements(["job_type", "move_job"], args)
-        CREATE_URL = "/users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
+        CREATE_URL = "users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
         del args["job_type"]
 
     introspect_dictionary_for_uris(args)
@@ -338,16 +338,16 @@ def update(object_type, args, object_id):
 
         if object_type == "email_job":
             check_requirements(["move_job"], args)
-            UPDATE_URL = "/users/current/move_jobs/%s/email_part/"
+            UPDATE_URL = "users/current/move_jobs/%s/email_part/"
 
         elif object_type == "component_job":
             check_requirements(["move_job", "job_type"], args)
-            UPDATE_URL = "/users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
+            UPDATE_URL = "users/current/move_jobs/%s/%s_part/" % (args['move_job'], args['job_type'])
             del args["job_type"]
 
         elif object_type == "email_folder":
             check_requirements(["move_job", "email_account"], args)
-            UPDATE_URL = "/users/current/move_jobs/%s/accounts/%s/email_folders/%s/" % (args['move_job'], args['email_account'], object_id)
+            UPDATE_URL = "users/current/move_jobs/%s/accounts/%s/email_folders/%s/" % (args['move_job'], args['email_account'], object_id)
             del args["move_job"]
             del args["email_account"]
 
@@ -362,14 +362,14 @@ def remove(object_type, object_id, args=[]):
     args = convert_arg_strings_to_dict(args)
 
     if object_type == "order":
-        DELETE_URL = "/users/current/orders/%s/" % object_id
+        DELETE_URL = "users/current/orders/%s/" % object_id
 
     elif object_type == "move_job":
-        DELETE_URL = "/users/current/move_jobs/%s/" % object_id
+        DELETE_URL = "users/current/move_jobs/%s/" % object_id
 
     elif object_type == "email_account":
         check_requirements(["move_job"], args)
-        DELETE_URL = "/users/current/move_jobs/%s/accounts/%s/" % (args['move_job'], object_id)
+        DELETE_URL = "users/current/move_jobs/%s/accounts/%s/" % (args['move_job'], object_id)
 
     delete(url=url(DELETE_URL))
     logbook.info("Deleted %s with id %s." % (object_type, object_id))
@@ -381,22 +381,22 @@ def list_objects(object_type, args=[]):
     args = convert_arg_strings_to_dict(args)
 
     if object_type == "order":
-        LIST_URL = "/users/current/orders/"
+        LIST_URL = "users/current/orders/"
 
     elif object_type == "move_job":
         args['expand'] = "move_job"
-        LIST_URL = "/users/current/move_jobs/"
+        LIST_URL = "users/current/move_jobs/"
 
     elif object_type == "email_folder":
         check_requirements(["move_job", "email_account"], args)
-        LIST_URL = "/users/current/move_jobs/%s/accounts/%s/email_folders/" % (args['move_job'], args['email_account'])
+        LIST_URL = "users/current/move_jobs/%s/accounts/%s/email_folders/" % (args['move_job'], args['email_account'])
 
     elif object_type == "provider":
-        LIST_URL = "/providers/"
+        LIST_URL = "providers/"
 
     elif object_type == "email_account":
         check_requirements(["move_job"], args)
-        LIST_URL = "/users/current/move_jobs/%s/accounts/" % args['move_job']
+        LIST_URL = "users/current/move_jobs/%s/accounts/" % args['move_job']
 
     response = get(url=url("%s?%s" % (LIST_URL, urlencode(args))))
     return response.content
@@ -411,7 +411,7 @@ def raw_status(object_type, object_id):
     if object_type == "order":
         pass
     elif object_type == "move_job":
-        URL = "/users/current/move_jobs/%s/status/" % object_id
+        URL = "users/current/move_jobs/%s/status/" % object_id
         try:
             response = get(url(URL))
             return response.json
@@ -424,9 +424,9 @@ def status(object_type, object_id):
 
     if object_type == "order":
 
-        ORDER_URL = "/users/current/orders/%s/" % object_id
-        USER_URL = "/users/current/"
-        MOVE_JOBS_URL = "/users/current/move_jobs/?order=%s&expand=move_job" % object_id
+        ORDER_URL = "users/current/orders/%s/" % object_id
+        USER_URL = "users/current/"
+        MOVE_JOBS_URL = "users/current/move_jobs/?order=%s&expand=move_job" % object_id
 
         order = get(url=url(ORDER_URL)).json
         user = get(url=url(USER_URL)).json
