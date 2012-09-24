@@ -7,10 +7,9 @@ Command-line interface for the YippieMove API.
 
 from base64 import b64encode
 from getpass import getpass
-from json import loads
 from urllib import urlencode
 from urlparse import urlparse
-from urlparse import urlsplit, urlunsplit, urljoin
+from urlparse import urljoin
 import argparse
 import json
 import operator
