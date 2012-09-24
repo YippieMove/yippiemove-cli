@@ -31,11 +31,7 @@ To override the API URL, simply run:
 $ export DEFAULT_API_SERVER=https://api.foobar.yippiemove.com
 
 """
-try:
-    DEFAULT_API_SERVER = os.environ['YIPPIEMOVE_API']
-except:
-    DEFAULT_API_SERVER = "https://api.yippiemove.com/v1/"
-
+DEFAULT_API_SERVER = os.getenv("YIPPIEMOVE_API", "https://api.yippiemove.com/v1")
 OAUTH_AUTHORIZE_URL = "%s://%s/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "%s://%s/oauth2/code/"
 OAUTH_TOKEN_URL = "%s://%s/oauth2/token/"
