@@ -585,7 +585,7 @@ def wizard(action=None, args=[]):
     print "=" * 64
     print
 
-    folders = get(url(source_email_account['link'], 'email_folders/'))
+    folders = get(url(source_email_account['link'], 'email_folders/')).json
 
     print "  Please specify the folders you'd like to transfer. For each, if"
     print "  you'd like to rename the folder, enter a new name. If you'd like"
@@ -600,20 +600,17 @@ def wizard(action=None, args=[]):
 
     for folder in folders:
         choice = raw_input(format_string % folder['name'])
-        updates = {'move_job': new_move_job['link'], 'email_account': source_email_account['link']}
 
         if choice == "skip":
-            updates['selected'] = False
-            put(url(folder['link']), data=updates)
+            put(url(folder['link']), data={'selected': False})
         elif choice != "":
-            updates['destination_name'] = choice
-            put(url(folder['link']), data=updates)
+            put(url(folder['link']), data={'destination_name': choice})
 
     print
     print "  Folders saved."
 
     # We now officially have enough information to constitute an EmailJob.
-    post(url(new_move_job['link'], 'email_jobs/'), data={'move_job': new_move_job['link']})
+    post(url(new_move_job['link'], 'email_part/'), data={'move_job': new_move_job['link']})
 
     print
     print "=" * 64
@@ -622,7 +619,7 @@ def wizard(action=None, args=[]):
     print
 
     # refresh the Order
-    new_order = get(url(new_order['link']))
+    new_order = get(url(new_order['link'])).json
 
     # Offer option to pay for Order now, or give Order number to allow them to pay later.
     print "  To begin your order you must pay the full balance of"
