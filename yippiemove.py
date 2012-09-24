@@ -541,7 +541,11 @@ def wizard(action=None, args=[]):
             while True:
 
                 time.sleep(5)
-                status = get(url(move_job['link'], 'status/')).json
+
+                try:
+                    status = get(url(move_job['link'], 'status/')).json
+                except:
+                    continue
 
                 if account_type in status:
                     if status[account_type]['status_code'] == "account-error":
@@ -647,20 +651,20 @@ def wizard(action=None, args=[]):
         # any errors that occur (such as not having enough credits)
         print "  Creating payment..."
         try:
-            payment = post(url(new_order['link'], 'payment')).json
+            payment = post(url(new_order['link'], 'payment/')).json
         except NotEnoughCreditsException:
             print "  You do not have enough available credits to pay for this Order."
             print "  To add credits to your account, please use the YippieMove website."
             print "  To pay for this order later using this utility, you should use:"
             print
-            print "  $ ./yippiemove.py create payment order=%s" % new_order['link']
+            print "  $ ./yippiemove.py create payment order=%s" % new_order['id']
         else:
             print "  Payment of %s credits was successful." % payment['amount']
             print
             print "  Your jobs will start as soon as possible, but you can check on"
             print "  their status using the status subcommand:"
             print
-            print "  $ ./yippiemove.py status order %s" % new_order['link']
+            print "  $ ./yippiemove.py status order %s" % new_order['id']
     else:
         # If they choose not to pay now, tell them the Order ID and, to be
         # helpful, give them the CLI command they'll need to make payment later.
