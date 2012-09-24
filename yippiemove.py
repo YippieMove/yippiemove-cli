@@ -26,9 +26,9 @@ API_SERVER = None
 
 VERSION = "0.1"
 
-""" 
+"""
 
-To override the API URL, simply run: 
+To override the API URL, simply run:
 $ export DEFAULT_API_SERVER=https://api.foobar.yippiemove.com
 
 """
