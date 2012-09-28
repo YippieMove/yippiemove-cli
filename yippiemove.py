@@ -5,17 +5,17 @@
 Command-line interface for the YippieMove API.
 """
 
-from base64 import b64encode
-from getpass import getpass
-from urllib import urlencode
-from urlparse import urlparse
-from urlparse import urljoin
 import argparse
 import json
 import operator
 import os
 import sys
 import time
+from base64 import b64encode
+from getpass import getpass
+from urllib import urlencode
+from urlparse import urlparse
+from urlparse import urljoin
 
 import requests
 import logbook
@@ -28,7 +28,7 @@ VERSION = "0.1"
 """
 
 To override the API URL, simply run:
-$ export DEFAULT_API_SERVER=https://api.foobar.yippiemove.com
+$ export YIPPIEMOVE_API=https://api.foobar.yippiemove.com
 
 """
 DEFAULT_API_SERVER = os.getenv("YIPPIEMOVE_API", "https://api.yippiemove.com/v1")
@@ -146,6 +146,14 @@ def introspect_dictionary_for_uris(dictionary):
             dictionary[key] = replacement
 
 
+def get_terminal_size():
+    try:
+        size = os.popen('stty size', 'r').read().split()
+    except:
+        size = (40, 78)
+    return {'width': int(size[1]), 'height': int(size[0])}
+
+
 ################################################################
 # Exceptions
 ################################################################
@@ -217,6 +225,10 @@ class HTTPBasicAuth(requests.auth.AuthBase):
 def make_request(url, method="GET", data={}):
     func = getattr(requests, method.lower())
     auth = HTTPBasicAuth(data=API_ACCESS_TOKEN)
+
+    # print url
+    # return
+
     response = func(url, auth=auth, data=data, verify=VERIFY_SSL)
     try:
         response_json = json.dumps(json.loads(response.content))
@@ -569,6 +581,92 @@ def wizard(action=None, args=[]):
         print "  %s email account has been indexed." % account_type.capitalize()
         return email_account
 
+    def draw_columns(folders):
+        longest_name = max([len(folder['name']) for folder in folders])
+        longest_number = len(str(len(folders)))
+        size = get_terminal_size()
+        padding = 2
+
+        columns = size['width'] / (longest_name + padding + longest_number + 2)
+        string = "{0:%d}) {1:%s}" % (longest_number, longest_name)
+
+        def chunks(folder_list, chunk_size):
+            """Returns elements of the folder_list in
+            chunks of chunk_size size."""
+            for index in xrange(0, len(folder_list), chunk_size):
+                yield folder_list[index:index + chunk_size]
+
+        folder_no = 1
+
+        for chunk in chunks(folders, columns):
+            line = ""
+            for i in range(len(chunk)):
+                name = chunk[i]['destination_name'] if 'destination_name' in chunk[i] else chunk[i]['name']
+                line += string.format(folder_no, name)
+                folder_no += 1
+                if (i + 1) != columns:
+                    line += " " * padding
+            print line
+
+    def get_choice():
+        print
+        print "Example commands:"
+        print "  \"skip 15\"          Marks folder number 15 to not be transferred."
+        print "  \"rename 14 Family\" Rename a folder before transferring."
+        print "  \"finished\"         Save changes and continue."
+
+        while True:
+            print
+            choice = parse_choice(raw_input("> "))
+            if choice:
+                return choice
+            else:
+                print "Invalid choice. Please try again."
+
+    def take_action(choice):
+        """Accepts a choice returned from get_choice
+        and executes the action it describes."""
+
+        if choice is None:
+            return
+
+        action, folder_number, args = choice
+        folder = folders[folder_number - 1]
+
+        if action == "skip":
+            # print "skip folder %d" % folder_number
+            put(url(folder['link']), data={'selected': False})
+            folders.remove(folder)
+        elif action == "rename":
+            # print "rename folder %d to %s" % (folder_number, " ".join(args))
+            put(url(folder['link']), data={'destination_name': " ".join(args)})
+            folder['destination_name'] = " ".join(args)
+
+    def parse_choice(choice):
+        """Accepts the raw input from the user and parses
+        the choice into an action to take, returning it.
+        If an action cannot be determined, return None,
+        otherwise, format is as follows:
+
+        ([action_name], [folder_number], [optional_args])
+
+        """
+
+        choice = choice.split(" ")
+
+        if choice[0] not in ["skip", "rename", "finished"]:
+            return None
+
+        if choice[0] == "finished":
+            return (choice[0], None, None)
+
+        try:
+            action, folder_number = choice[0], int(choice[1])
+        except:
+            return None
+
+        return (action, folder_number, choice[2:] if len(choice) > 2 else None)
+
     new_order = post(url(current_user['link'], 'orders/')).json
     new_move_job = post(url(current_user['link'], 'move_jobs/'), {'order': new_order['link']}).json
 
@@ -596,26 +694,19 @@ def wizard(action=None, args=[]):
 
     folders = get(url(source_email_account['link'], 'email_folders/')).json
 
-    print "  Please specify the folders you'd like to transfer. For each, if"
-    print "  you'd like to rename the folder, enter a new name. If you'd like"
-    print "  to skip a folder enter 'skip'. To use the existing name, just"
-    print "  press enter.\n"
+    print "  Below are the folders found in your source email account."
+    print "  You may make changes by following the commands below. When"
+    print "  you're done, enter 'finished' and press enter."
 
-    column_length = 0
-    for folder in folders:
-        if len(folder['name']) > column_length:
-            column_length = len(folder['name'])
-    format_string = "  %" + str(column_length) + "s > "
+    while True:
+        print
+        draw_columns(folders)
+        choice = get_choice()
+        if choice[0] == "finished":
+            break
+        else:
+            take_action(choice)
 
-    for folder in folders:
-        choice = raw_input(format_string % folder['name'])
-
-        if choice == "skip":
-            put(url(folder['link']), data={'selected': False})
-        elif choice != "":
-            put(url(folder['link']), data={'destination_name': choice})
-
-    print
     print "  Folders saved."
 
     # We now officially have enough information to constitute an EmailJob.
