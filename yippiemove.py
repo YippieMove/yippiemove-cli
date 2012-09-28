@@ -28,7 +28,7 @@ VERSION = "0.1"
 """
 
 To override the API URL, simply run:
-$ export YIPPIEMOVE_API=https://api.foobar.yippiemove.com
+$ export YIPPIEMOVE_API="https://api.sandbox.yippiemove.com/v1"
 
 """
 DEFAULT_API_SERVER = os.getenv("YIPPIEMOVE_API", "https://api.yippiemove.com/v1")
