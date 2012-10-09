@@ -538,7 +538,6 @@ def wizard(action=None, args=[]):
 
             account_data = {
                 'move_job': move_job['link'],
-                'is_destination': account_type == "destination",
                 'login': account['login'],
                 'password': account['password'],
                 'port': account['port'],
@@ -549,7 +548,7 @@ def wizard(action=None, args=[]):
             if 'id' in account:
                 account_data['provider'] = account['identifier']
 
-            email_account = post(url(move_job['link'], 'accounts/'), account_data).json
+            email_account = put(url(move_job['link'], 'accounts/%s/' % account_type), account_data).json
 
             print "  Indexing email account..."
 
