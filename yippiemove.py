@@ -498,7 +498,7 @@ def wizard(action=None, args=[]):
         other_choice = len(providers) + 1
 
         for i, provider in enumerate(providers):
-            print "  %2d) %s" % (i + 1, provider['name'])
+            print u"  %2d) %s" % (i + 1, provider['name'])
 
         print "  " + "==" * 16
         print "  %2d) Other" % other_choice
