@@ -34,7 +34,7 @@ $ export YIPPIEMOVE_API="https://api.sandbox.yippiemove.com/v1"
 DEFAULT_API_SERVER = os.getenv("YIPPIEMOVE_API", "https://api.yippiemove.com/v1")
 OAUTH_AUTHORIZE_URL = "%s://%s/oauth2/authorize"
 OAUTH_ACCESS_CODE_URL = "%s://%s/oauth2/code/"
-OAUTH_TOKEN_URL = "%s://%s/oauth2/token/"
+OAUTH_TOKEN_URL = "%s://%s/v1/oauth2/token/"
 
 VERIFY_SSL = True
 
@@ -88,7 +88,7 @@ def get_oauth_url_for(method):
     scheme = parsed.scheme
     domain_pieces = parsed.netloc.split(".")
 
-    if domain_pieces[0] == "api":
+    if domain_pieces[0] == "api" and method != "token":
         domain_pieces = domain_pieces[1:]
 
     netloc = ".".join(domain_pieces)
