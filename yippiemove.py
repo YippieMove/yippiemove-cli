@@ -247,7 +247,7 @@ def make_request(url, method="GET", data={}):
 
         if response.json['error'] == "Not authenticated.":
             raise NotAuthenticatedException()
-        elif response.json['description'] == "You don't have enough credits to pay for this order.":
+        elif response.json['description'] == "Insufficient credits to pay for this Order.":
             raise NotEnoughCreditsException()
         else:
             raise ForbiddenException()
