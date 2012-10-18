@@ -237,7 +237,7 @@ def make_request(url, method="GET", data={}):
 
     logbook.debug("%s %s\n%s\n%s" % (method, url, json.dumps(data), response_json))
 
-    if response.status_code == 200:
+    if response.status_code in (200, 201):
         return response
 
     elif response.status_code == 400:
