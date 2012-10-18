@@ -449,33 +449,33 @@ def status(object_type, object_id):
         user = get(url=url(USER_URL)).json
         move_jobs = get(url=url(MOVE_JOBS_URL)).json
 
-        print
-        print "=" * 64
-        print "  Status of Order #%d" % order['id']
-        print "=" * 64
-        print "  Owner: %s" % user['username']
-        print "  This order has been paid for." if len(order['payments']) else "  This order has not been paid for."
-        print
-        print "  Move Jobs on this Order:"
+        print("")
+        print("=" * 64)
+        print("  Status of Order #%d" % order['id'])
+        print("=" * 64)
+        print("  Owner: %s" % user['username'])
+        print("  This order has been paid for." if len(order['payments']) else "  This order has not been paid for.")
+        print("")
+        print("  Move Jobs on this Order:")
 
         if len(move_jobs):
             for job in move_jobs:
-                print "    -MoveJob #%s" % job['id']
+                print("    -MoveJob #%s" % job['id'])
                 data = raw_status("move_job", job['id'])
-                print "     %s" % data['overall']['status_message']
+                print("     %s" % data['overall']['status_message'])
         else:
-            print "    -None"
-        print
+            print("    -None")
+        print("")
 
     elif object_type == "move_job":
         data = raw_status("move_job", object_id)
-        print data
-        print
-        print "=" * 64
-        print "  Status of MoveJob #%s" % object_id
-        print "=" * 64
-        print "  %s" % data['overall']['status_message']
-        print
+        print(data)
+        print("")
+        print("=" * 64)
+        print("  Status of MoveJob #%s" % object_id)
+        print("=" * 64)
+        print("  %s" % data['overall']['status_message'])
+        print("")
 
 
 ################################################################
@@ -498,34 +498,34 @@ def wizard(action=None, args=[]):
         other_choice = len(providers) + 1
 
         for i, provider in enumerate(providers):
-            print u"  %2d) %s" % (i + 1, provider['name'])
+            print("  %2d) %s" % (i + 1, provider['name']))
 
-        print "  " + "==" * 16
-        print "  %2d) Other" % other_choice
-        print
+        print("  " + "==" * 16)
+        print("  %2d) Other" % other_choice)
+        print("")
 
         choice = -1
         while (choice < 1) or (choice > (len(providers) + 1)):
             try:
                 choice = int(raw_input("  Your choice: "))
             except ValueError:
-                print "  Choice must be an integer."
+                print("  Choice must be an integer.")
                 continue
 
         if choice == other_choice:
-            print "  You've chosen Other. Please tell us about the Other email server:\n"
+            print("  You've chosen Other. Please tell us about the Other email server:\n")
             selected_provider = {}
             selected_provider['host'] = raw_input("    Hostname: ")
             selected_provider['port'] = int(raw_input("        Port: "))
             selected_provider['ssl'] = bool(True if raw_input("  SSL? [y/n]: ") in ["y", "Y"] else False)
         else:
             selected_provider = providers[choice - 1]
-            print "  You've chosen %s" % selected_provider['name']
+            print("  You've chosen %s" % selected_provider['name'])
 
-        print
+        print("")
         selected_provider['login'] = raw_input("     Login: ")
         selected_provider['password'] = getpass("  Password: ")
-        print
+        print("")
 
         return selected_provider
 
@@ -550,7 +550,7 @@ def wizard(action=None, args=[]):
 
             email_account = put(url(move_job['link'], 'accounts/%s/' % account_type), account_data).json
 
-            print "  Indexing email account..."
+            print("  Indexing email account...")
 
             # Wait for the account indexing to be accomplished or an error to occur
 
@@ -565,7 +565,7 @@ def wizard(action=None, args=[]):
 
                 if account_type in status:
                     if status[account_type]['status_code'] == "account-error":
-                        print "  Could not connect to the email account. Please double-check your credentials.\n"
+                        print("  Could not connect to the email account. Please double-check your credentials.\n")
 
                         # Credentials were wrong, let's remove that account so we
                         # don't have a surplus of wasted accounts
@@ -577,7 +577,7 @@ def wizard(action=None, args=[]):
                         okay = True
                         break
 
-        print "  %s email account has been indexed." % account_type.capitalize()
+        print("  %s email account has been indexed." % account_type.capitalize())
         return email_account
 
     def draw_columns(folders):
@@ -592,7 +592,7 @@ def wizard(action=None, args=[]):
         def chunks(folder_list, chunk_size):
             """Returns elements of the folder_list in
             chunks of chunk_size size."""
-            for index in xrange(0, len(folder_list), chunk_size):
+            for index in range(0, len(folder_list), chunk_size):
                 yield folder_list[index:index + chunk_size]
 
         folder_no = 1
@@ -605,22 +605,22 @@ def wizard(action=None, args=[]):
                 folder_no += 1
                 if (i + 1) != columns:
                     line += " " * padding
-            print line
+            print(line)
 
     def get_choice():
-        print
-        print "Example commands:"
-        print "  \"skip 15\"          Marks folder number 15 to not be transferred."
-        print "  \"rename 14 Family\" Rename a folder before transferring."
-        print "  \"finished\"         Save changes and continue."
+        print("")
+        print("Example commands:")
+        print("  \"skip 15\"          Marks folder number 15 to not be transferred.")
+        print("  \"rename 14 Family\" Rename a folder before transferring.")
+        print("  \"finished\"         Save changes and continue.")
 
         while True:
-            print
+            print("")
             choice = parse_choice(raw_input("> "))
             if choice:
                 return choice
             else:
-                print "Invalid choice. Please try again."
+                print("Invalid choice. Please try again.")
 
     def take_action(choice):
         """Accepts a choice returned from get_choice
@@ -666,39 +666,41 @@ def wizard(action=None, args=[]):
 
         return (action, folder_number, choice[2:] if len(choice) > 2 else None)
 
-    new_order = post(url(current_user['link'], 'orders/')).json
+    new_order = post(url(current_user['link'], 'orders/'))
+    print "new_order: %s" % new_order
+    new_order = new_order.json
     new_move_job = post(url(current_user['link'], 'move_jobs/'), {'order': new_order['link']}).json
 
-    print
-    print "=" * 64
-    print "  Step 1: Where are we moving from?"
-    print "=" * 64
-    print
+    print("")
+    print("=" * 64)
+    print("  Step 1: Where are we moving from?")
+    print("=" * 64)
+    print("")
 
     source_email_account = get_and_verify_email_account(new_move_job, "source")
 
-    print
-    print "=" * 64
-    print "  Step 2: Where to?"
-    print "=" * 64
-    print
+    print("")
+    print("=" * 64)
+    print("  Step 2: Where to?")
+    print("=" * 64)
+    print("")
 
     get_and_verify_email_account(new_move_job, "destination")
 
-    print
-    print "=" * 64
-    print "  Step 3: What to transfer"
-    print "=" * 64
-    print
+    print("")
+    print("=" * 64)
+    print("  Step 3: What to transfer")
+    print("=" * 64)
+    print("")
 
     folders = get(url(source_email_account['link'], 'email_folders/')).json
 
-    print "  Below are the folders found in your source email account."
-    print "  You may make changes by following the commands below. When"
-    print "  you're done, enter 'finished' and press enter."
+    print("  Below are the folders found in your source email account.")
+    print("  You may make changes by following the commands below. When")
+    print("  you're done, enter 'finished' and press enter.")
 
     while True:
-        print
+        print("")
         draw_columns(folders)
         choice = get_choice()
         if choice[0] == "finished":
@@ -706,24 +708,24 @@ def wizard(action=None, args=[]):
         else:
             take_action(choice)
 
-    print "  Folders saved."
+    print("  Folders saved.")
 
     # We now officially have enough information to constitute an EmailJob.
     post(url(new_move_job['link'], 'email_part/'), data={'move_job': new_move_job['link']})
 
-    print
-    print "=" * 64
-    print "  Step 4: Make payment"
-    print "=" * 64
-    print
+    print("")
+    print("=" * 64)
+    print("  Step 4: Make payment")
+    print("=" * 64)
+    print("")
 
     # refresh the Order
     new_order = get(url(new_order['link'])).json
 
     # Offer option to pay for Order now, or give Order number to allow them to pay later.
-    print "  To begin your order you must pay the full balance of"
-    print "  the Order: %s credits." % new_order['credits']
-    print
+    print("  To begin your order you must pay the full balance of")
+    print("  the Order: %s credits." % new_order['price'])
+    print("")
 
     pay_now = False
 
@@ -744,30 +746,30 @@ def wizard(action=None, args=[]):
     if pay_now:
         # If they choose to pay now, attempt to create a payment, catching
         # any errors that occur (such as not having enough credits)
-        print "  Creating payment..."
+        print("  Creating payment...")
         try:
             payment = post(url(new_order['link'], 'payment/')).json
         except NotEnoughCreditsException:
-            print "  You do not have enough available credits to pay for this Order."
-            print "  To add credits to your account, please use the YippieMove website."
-            print "  To pay for this order later using this utility, you should use:"
-            print
-            print "  $ ./yippiemove.py create payment order=%s" % new_order['id']
+            print("  You do not have enough available credits to pay for this Order.")
+            print("  To add credits to your account, please use the YippieMove website.")
+            print("  To pay for this order later using this utility, you should use:")
+            print("")
+            print("  $ ./yippiemove.py create payment order=%s" % new_order['id'])
         else:
-            print "  Payment of %s credits was successful." % payment['amount']
-            print
-            print "  Your jobs will start as soon as possible, but you can check on"
-            print "  their status using the status subcommand:"
-            print
-            print "  $ ./yippiemove.py status order %s" % new_order['id']
+            print("  Payment of %s credits was successful." % payment['amount'])
+            print("")
+            print("  Your jobs will start as soon as possible, but you can check on")
+            print("  their status using the status subcommand:")
+            print("")
+            print("  $ ./yippiemove.py status order %s" % new_order['id'])
     else:
         # If they choose not to pay now, tell them the Order ID and, to be
         # helpful, give them the CLI command they'll need to make payment later.
-        print "  To pay later you'll need this Order's ID: %s" % new_order['id']
-        print "  To pay using this utility, simply execute the following when you're ready:"
-        print
-        print "    $ ./yippiemove.py create payment order=%s" % new_order['link']
-        print
+        print("  To pay later you'll need this Order's ID: %s" % new_order['id'])
+        print("  To pay using this utility, simply execute the following when you're ready:")
+        print("")
+        print("    $ ./yippiemove.py create payment order=%s" % new_order['link'])
+        print("")
 
 
 ################################################################
@@ -792,38 +794,38 @@ def token_admin(action, token_string=None):
 
     if action == "set":
         if token_string is None:
-            print "You must provide a token string."
+            print("You must provide a token string.")
             return
 
         try:
             with open(".ymo_token", "w") as f:
                 f.write(token_string)
-            print "Token set as %s" % token_string
+            print("Token set as %s" % token_string)
         except IOError:
-            print "Could not write token file."
+            print("Could not write token file.")
         except:
             return
 
     elif action == "get":
         token = get_token()
         if token is not None:
-            print "Token is: " + token
+            print("Token is: " + token)
         else:
-            print "Token is not set. Use yippiemove.py token set <token_string>"
+            print("Token is not set. Use yippiemove.py token set <token_string>")
             return None
 
     elif action == "delete":
         try:
             os.remove(".ymo_token")
-            print "Token removed."
+            print("Token removed.")
         except:
-            print "Token could not be removed."
+            print("Token could not be removed.")
 
     elif action == "wizard":
 
-        print "To obtain a token, please enter your application's public"
-        print "and private keys."
-        print
+        print("To obtain a token, please enter your application's public")
+        print("and private keys.")
+        print("")
 
         CLIENT_KEY = raw_input(" Public Key: ")
         CLIENT_SECRET = raw_input("Private Key: ")
@@ -834,13 +836,13 @@ def token_admin(action, token_string=None):
             "response_type": "code"
         }
 
-        print
-        print "Please visit the following URL in your browser:"
-        print
-        print "    %s?%s" % (get_oauth_url_for("authorize"), urlencode(parameters))
-        print
-        print "When you've accepted and received your access code,"
-        print "please enter it below:"
+        print("")
+        print("Please visit the following URL in your browser:")
+        print("")
+        print("    %s?%s" % (get_oauth_url_for("authorize"), urlencode(parameters)))
+        print("")
+        print("When you've accepted and received your access code,")
+        print("please enter it below:")
         ACCESS_CODE = raw_input("Access Code: ")
 
         parameters = {
@@ -856,9 +858,9 @@ def token_admin(action, token_string=None):
             response = requests.get("%s?%s" % (get_oauth_url_for("token"), urlencode(parameters)), auth=auth, verify=VERIFY_SSL)
             json = response.json
             token_admin("set", json['access_token'])
-            print "Future actions you now take will use this access token by default."
+            print("Future actions you now take will use this access token by default.")
         except:
-            print "There was a problem retrieving your token. Please try again."
+            print("There was a problem retrieving your token. Please try again.")
 
 
 ################################################################
@@ -965,7 +967,7 @@ def main(argv=None):
 
                         result = func(**args)
                         if result:
-                            print result
+                            print(result)
 
     except NotFoundException:
         logbook.error("The object you were looking for could not be found.")
@@ -979,7 +981,7 @@ def main(argv=None):
         logbook.error("We're sorry, there was a problem on YippieMove's servers and your request could not be completed.")
     except ConflictException as e:
         logbook.error("We're sorry, there was a conflict: %s" % e)
-    except BadRequestException, e:
+    except BadRequestException as e:
         logbook.error("Could not complete your request: %s" % e.errors)
 
 
