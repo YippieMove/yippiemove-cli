@@ -823,12 +823,12 @@ def token_admin(action, token_string=None):
 
     elif action == "wizard":
 
-        print("To obtain a token, please enter your application's public")
-        print("and private keys.")
+        print("To obtain a token, please enter your application's key")
+        print("and secret.")
         print("")
 
-        CLIENT_KEY = raw_input(" Public Key: ")
-        CLIENT_SECRET = raw_input("Private Key: ")
+        CLIENT_KEY = raw_input("   Key: ")
+        CLIENT_SECRET = raw_input("Secret: ")
 
         parameters = {
             "client_id": CLIENT_KEY,
