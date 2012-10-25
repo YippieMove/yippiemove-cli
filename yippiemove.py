@@ -454,7 +454,7 @@ def status(object_type, object_id):
         print("  Status of Order #%d" % order['id'])
         print("=" * 64)
         print("  Owner: %s" % user['email'])
-        print("  This order has been paid for." if len(order['payments']) else "  This order has not been paid for.")
+        print("  This order has been paid for." if order['payment'] else "  This order has not been paid for.")
         print("")
         print("  Move Jobs on this Order:")
 
