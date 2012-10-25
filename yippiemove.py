@@ -666,9 +666,7 @@ def wizard(action=None, args=[]):
 
         return (action, folder_number, choice[2:] if len(choice) > 2 else None)
 
-    new_order = post(url(current_user['link'], 'orders/'))
-    print "new_order: %s" % new_order
-    new_order = new_order.json
+    new_order = post(url(current_user['link'], 'orders/')).json
     new_move_job = post(url(current_user['link'], 'move_jobs/'), {'order': new_order['link']}).json
 
     print("")
